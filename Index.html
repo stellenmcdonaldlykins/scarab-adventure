@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Scarab Adventure</title>
+
+<style>
+body{
+font-family: Georgia, serif;
+background:#f4efe2;
+color:#2d2418;
+margin:0;
+padding:0;
+}
+
+.game-container{
+max-width:800px;
+margin:40px auto;
+background:#fffaf0;
+border:3px solid #7a5c2e;
+border-radius:14px;
+padding:30px;
+box-shadow:0 6px 18px rgba(0,0,0,0.15);
+}
+
+.warning-box{
+background:#fff0f0;
+border:3px solid #cc0000;
+border-radius:12px;
+padding:22px;
+margin-bottom:20px;
+text-align:center;
+}
+
+.warning-title{
+color:#cc0000;
+font-size:36px;
+font-weight:bold;
+text-align:center;
+letter-spacing:2px;
+margin-bottom:12px;
+}
+
+.warning-text{
+font-size:18px;
+line-height:1.6;
+text-align:center;
+margin-bottom:18px;
+}
+
+h1{
+text-align:center;
+color:#5a3f1a;
+margin-top:0;
+}
+
+#story{
+font-size:18px;
+line-height:1.6;
+margin-bottom:20px;
+white-space:pre-line;
+}
+
+.ending-text{
+text-align:center;
+font-size:20px;
+font-weight:bold;
+margin-bottom:15px;
+}
+
+#endingImage{
+margin-bottom:20px;
+text-align:center;
+}
+
+#endingImage img{
+max-width:420px;
+width:100%;
+border-radius:12px;
+border:3px solid #7a5c2e;
+}
+
+.beetle-card{
+margin-top:10px;
+padding:18px;
+background:#f7f0df;
+border:2px solid #b89252;
+border-radius:12px;
+}
+
+.beetle-name{
+text-align:center;
+font-size:28px;
+font-weight:bold;
+margin-bottom:14px;
+color:#3b2a12;
+line-height:1.3;
+}
+
+.beetle-description{
+margin-bottom:14px;
+line-height:1.7;
+font-size:17px;
+}
+
+.beetle-fact{
+font-style:italic;
+background:#fff7cc;
+padding:12px;
+border-radius:8px;
+border:1px solid #e0c96d;
+line-height:1.6;
+font-size:16px;
+}
+
+.choices{
+display:flex;
+flex-direction:column;
+gap:12px;
+}
+
+button{
+background:#8b6b35;
+color:white;
+border:none;
+padding:14px;
+border-radius:10px;
+font-size:16px;
+cursor:pointer;
+text-align:left;
+}
+
+button:hover{
+background:#6f5428;
+}
+
+.continue-btn{
+background:#a63a3a;
+text-align:center;
+font-weight:bold;
+}
+
+.continue-btn:hover{
+background:#872d2d;
+}
+
+.restart{
+background:#3d6b3d;
+margin-top:20px;
+}
+
+.restart:hover{
+background:#2e522e;
+}
+</style>
+</head>
+
+<body>
+
+<div class="game-container">
+
+<div id="startScreen">
+  <div class="warning-box">
+    <div class="warning-title">WARNING</div>
+    <div class="warning-text">
+      This game is about bugs! It includes descriptions of beetle larvae and images of adult beetles.
+      If insects make you uncomfortable, you may want to proceed carefully. But I promise, these beetles
+      are cuter than you think! :)
+    </div>
+    <button class="continue-btn" onclick="startGame()">Continue</button>
+  </div>
+</div>
+
+<div id="gameScreen" style="display:none;">
+  <h1>Scarab Adventure</h1>
+  <div id="story"></div>
+  <div id="endingImage"></div>
+  <div class="choices" id="choices"></div>
+</div>
+
+</div>
+
+<script>
+const story = document.getElementById("story");
+const choices = document.getElementById("choices");
+const endingImage = document.getElementById("endingImage");
+const startScreen = document.getElementById("startScreen");
+const gameScreen = document.getElementById("gameScreen");
+
+const warningSeen = localStorage.getItem("warningSeen");
+
+const gameData = {
+
+start:{
+text:"A tiny scarab beetle larva has arrived in your care. Each decision you make will shape how it develops and determine which adult beetle it becomes. Raise your larva carefully and discover its mysterious final form!\n\nShould you keep the larva warm or cool?",
+options:[
+{text:"Keep it warm and humid",next:"warm1"},
+{text:"Keep it cool and shaded",next:"cool1"}
+]
+},
+
+warm1:{
+text:"The larva burrows deeper and begins growing quickly in the warmth.\n\nWhat substrate do you give it?",
+options:[
+{text:"Deep fermented hardwood mulch",next:"warm2"},
+{text:"Loose tropical jungle soil",next:"warm3"}
+]
+},
+
+warm2:{
+text:"The larva thrives in the rich wood.\n\nWhat do you feed it most often?",
+options:[
+{text:"Nutrient rich decaying wood",next:"warm4"},
+{text:"Fruit scraps and compost",next:"warm5"}
+]
+},
+
+warm3:{
+text:"The larva seems comfortable in the humid jungle soil.\n\nHow wet do you keep the habitat?",
+options:[
+{text:"Very humid rainforest conditions",next:"warm5"},
+{text:"Moderately damp soil",next:"warm4"}
+]
+},
+
+warm4:{
+text:"Your larva grows extremely large.\n\nHow much space do you give it?",
+options:[
+{text:"Very deep container with packed substrate",next:"dynastesEnding"},
+{text:"Wide enclosure with thick wood pieces",next:"atlasEnding"}
+]
+},
+
+warm5:{
+text:"The larva grows strong in the warm environment.\n\nWhat environment does it pupate in?",
+options:[
+{text:"Hot humid jungle floor",next:"atlasEnding"},
+{text:"Tropical forest with deep soil",next:"dynastesEnding"}
+]
+},
+
+cool1:{
+text:"The larva develops slowly in the cooler habitat.\n\nWhere do you keep it?",
+options:[
+{text:"Temperate forest terrarium with oak logs",next:"cool2"},
+{text:"Mountain forest setup with dry wood",next:"cool3"}
+]
+},
+
+cool2:{
+text:"The larva prefers hardwood.\n\nWhat wood do you provide?",
+options:[
+{text:"Rotting oak logs",next:"cool4"},
+{text:"Mixed hardwood chips",next:"cool5"}
+]
+},
+
+cool3:{
+text:"The cooler environment causes the larva to burrow deeper.\n\nHow moist is the soil?",
+options:[
+{text:"Moderately moist forest soil",next:"cool4"},
+{text:"Cool but slightly dry soil",next:"cool5"}
+]
+},
+
+cool4:{
+text:"The larva forms a strong pupa chamber.\n\nWhat final habitat surrounds it?",
+options:[
+{text:"Cool shaded forest with heavy logs",next:"titanusEnding"},
+{text:"Oak woodland with deep bark",next:"titanusEnding"}
+]
+},
+
+cool5:{
+text:"The larva matures slowly but powerfully.\n\nWhat forest conditions remain?",
+options:[
+{text:"Dense hardwood forest",next:"titanusEnding"},
+{text:"Dry woodland with buried logs",next:"titanusEnding"}
+]
+},
+
+dynastesEnding:{
+text:"Your larva develops into a massive male Hercules Beetle!",
+image:"dynastes.png",
+ending:`
+<div class="beetle-card">
+  <div class="beetle-name">Dynastes hercules (Hercules Beetle)</div>
+
+  <div class="beetle-description">
+    The Hercules beetle is one of the largest beetles in the world and lives in the tropical rainforests of Central and South America. Male Hercules beetles are famous for their long horns, which they use to wrestle other males when competing for mates. Despite their intimidating appearance, they are harmless to humans and mostly feed on rotting fruit and plant material.
+  </div>
+
+  <div class="beetle-fact">
+    Fun fact: The color of a Hercules beetle's wing covers can actually change depending on humidity. In dry conditions they appear yellow, but in humid environments they can turn dark or almost black.
+  </div>
+</div>
+`
+},
+
+atlasEnding:{
+text:"Your larva develops into a powerful male Atlas Beetle!",
+image:"atlas.png",
+ending:`
+<div class="beetle-card">
+  <div class="beetle-name">Chalcosoma atlas (Atlas Beetle)</div>
+
+  <div class="beetle-description">
+    The Atlas beetle is a large rhinoceros beetle found in Southeast Asia, including Indonesia, Malaysia, and Thailand. Males have three dramatic horns that they use to push and fight other males during competitions for territory and mates. Like many scarab beetles, their larvae grow underground and feed on decaying wood.
+  </div>
+
+  <div class="beetle-fact">
+    Fun fact: Atlas beetles are incredibly strong for their size and can lift objects many times their own body weight.
+  </div>
+</div>
+`
+},
+
+titanusEnding:{
+text:"Your larva develops into a large male Giant Stag Beetle!",
+image:"titanus.png",
+ending:`
+<div class="beetle-card">
+  <div class="beetle-name">Serrognathus titanus (Giant Stag Beetle)</div>
+
+  <div class="beetle-description">
+    Serrognathus titanus is one of the largest stag beetles in the world and lives in forests across parts of Asia. Male stag beetles have enormous mandibles that look like antlers, which they use to fight rival males for territory and access to females. Adult stag beetles typically feed on tree sap and fruit.
+  </div>
+
+  <div class="beetle-fact">
+    Fun fact: Even though their mandibles look dangerous, male stag beetles rarely bite humans and mainly use them for wrestling other beetles.
+  </div>
+</div>
+`
+},
+
+};
+
+function startGame(){
+localStorage.setItem("warningSeen", "true");
+startScreen.style.display = "none";
+gameScreen.style.display = "block";
+renderScene("start");
+}
+
+function renderScene(sceneKey){
+const scene = gameData[sceneKey];
+story.textContent = scene.text;
+choices.innerHTML = "";
+endingImage.innerHTML = "";
+
+if(scene.ending){
+story.classList.add("ending-text");
+}else{
+story.classList.remove("ending-text");
+}
+
+if(scene.ending){
+endingImage.innerHTML = `<img src="${scene.image}" alt="Beetle">`;
+
+const endText = document.createElement("div");
+endText.innerHTML = scene.ending;
+choices.appendChild(endText);
+
+const restart = document.createElement("button");
+restart.textContent = "Play Again";
+restart.className = "restart";
+restart.onclick = () => {
+  renderScene("start");
+};
+choices.appendChild(restart);
+
+return;
+}
+
+scene.options.forEach(option => {
+const button = document.createElement("button");
+button.textContent = option.text;
+button.onclick = () => renderScene(option.next);
+choices.appendChild(button);
+});
+}
+
+if(warningSeen){
+startScreen.style.display = "none";
+gameScreen.style.display = "block";
+renderScene("start");
+}
+</script>
+
+</body>
+</html>
